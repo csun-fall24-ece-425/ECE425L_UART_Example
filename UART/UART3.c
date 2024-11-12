@@ -27,9 +27,34 @@ void UART3_Init(void)
 	// R2 bit (Bit 2) in the RCGCGPIO register
 	SYSCTL->RCGCGPIO |= 0x04;
 	
+	// Configure the PC7 (U3TX) and PC6 (U3RX) pins to use the alternate function
+	// by setting Bits 7 to 6 in the AFSEL register
+	GPIOC->AFSEL |= 0xC0;
+	
+	// Clear the PMC7 (Bits 31 to 28) and PMC6 (Bits 27 to 24) fields in the PCTL register before configuration
+	GPIOC->PCTL &= ~0xFF000000;
+	
+	// Configure the PC7 pin to operate as a U3TX pin by writing 0x1 to the
+	// PMC7 field (Bits 31 to 28) in the PCTL register
+	// The 0x1 value is derived from Table 23-5 in the TM4C123G Microcontroller Datasheet
+	GPIOC->PCTL |= 0x10000000;
+	
+	// Configure the PC6 pin to operate as a U3RX pin by writing 0x1 to the
+	// PMC6 field (Bits 27 to 24) in the PCTL register
+	// The 0x1 value is derived from Table 23-5 in the TM4C123G Microcontroller Datasheet
+	GPIOC->PCTL |= 0x01000000;
+	
+	// Enable the digital functionality for the PC7 and PC6 pins
+	// by setting Bits 7 to 6 in the DEN register
+	GPIOC->DEN |= 0xC0;
+	
 	// Disable the UART3 module before configuration by clearing
 	// the UARTEN bit (Bit 0) in the CTL register
 	UART3->CTL &= ~0x0001;
+	
+	// Specify the UART clock source to use the system clock by
+	// writing a value of 0x0 to the CS field (Bits 3 to 0) in the CC register
+	UART3->CC &= ~0xF;
 	
 	// Configure the UART3 module to use the system clock (50 MHz)
 	// divided by 16 by clearing the HSE bit (Bit 5) in the CTL register
@@ -62,27 +87,6 @@ void UART3_Init(void)
 	// Enable the UART3 module after configuration by setting
 	// the UARTEN bit (Bit 0) in the CTL register
 	UART3->CTL |= 0x01;
-	
-	// Configure the PC7 (U3TX) and PC6 (U3RX) pins to use the alternate function
-	// by setting Bits 7 to 6 in the AFSEL register
-	GPIOC->AFSEL |= 0xC0;
-	
-	// Clear the PMC7 (Bits 31 to 28) and PMC6 (Bits 27 to 24) fields in the PCTL register before configuration
-	GPIOC->PCTL &= ~0xFF000000;
-	
-	// Configure the PC7 pin to operate as a U3TX pin by writing 0x1 to the
-	// PMC7 field (Bits 31 to 28) in the PCTL register
-	// The 0x1 value is derived from Table 23-5 in the TM4C123G Microcontroller Datasheet
-	GPIOC->PCTL |= 0x10000000;
-	
-	// Configure the PC6 pin to operate as a U3RX pin by writing 0x1 to the
-	// PMC6 field (Bits 27 to 24) in the PCTL register
-	// The 0x1 value is derived from Table 23-5 in the TM4C123G Microcontroller Datasheet
-	GPIOC->PCTL |= 0x01000000;
-	
-	// Enable the digital functionality for the PC7 and PC6 pins
-	// by setting Bits 7 to 6 in the DEN register
-	GPIOC->DEN |= 0xC0;
 }
 
 char UART3_Input_Character(void)
